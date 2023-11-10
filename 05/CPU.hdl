@@ -26,7 +26,6 @@
  */
 
 CHIP CPU {
-
     IN  inM[16],         // M value input  (M = contents of RAM[A])
         instruction[16], // Instruction for execution
         reset;           // Signals whether to re-start the current
@@ -40,4 +39,35 @@ CHIP CPU {
 
     PARTS:
     // Put your code here:
+    Or16(a=false,b=instruction,out[15]=isc,out[14]=isA,
+    out[13]=isM,out[12]=a1,out[11]=c6,out[10]=c5,out[9]=c4,out[8]=c3,
+    out[7]=c2,out[6]=c1,out[5]=d3,out[4]=d2,out[3]=d1,out[2]=j3,
+    out[1]=j2,out[0]=j1);
+
+    And(a=isc,b=d1,out=writeM);
+    Not(in=isc,out=isC);
+    Mux16(a=outmtemp,b=instruction,sel=isC,out=t1);
+    Or(a=isC,b=d3,out=ard3);
+    ARegister(in=t1,load=ard3,out=ar,out[0..14]=addressM);
+    And(a=isc,b=a1,out=muxtemp);
+    Mux16(a=ar,b=inM,sel=muxtemp,out=t2);
+    ALU(x=dr,y=t2,zx=c6,nx=c5,zy=c4,ny=c3,f=c2,no=c1,out=outmtemp,out=outM,zr=zr,ng=ng);
+    And(a=isc,b=d2,out=drtemp);
+    DRegister(in=outmtemp,load=drtemp,out=dr);
+
+    Not(in=ng,out=pos);
+	Not(in=zr,out=nzr);
+	And(a=isc,b=j1,out=jgt);
+	And(a=pos,b=nzr,out=posnzr);
+	And(a=jgt,b=posnzr,out=ld1);
+
+	And(a=isc,b=j2,out=jeq);
+	And(a=jeq,b=zr,out=ld2);
+
+	And(a=isc,b=j3,out=jlt);
+	And(a=jlt,b=ng,out=ld3);
+
+	Or(a=ld1,b=ld2,out=ldt);
+	Or(a=ld3,b=ldt,out=ld);
+    PC(in=ar,load=ld,inc=true,reset=reset,out[0..14]=pc);
 }
