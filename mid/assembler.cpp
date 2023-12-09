@@ -3,6 +3,7 @@
 #include<algorithm>
 #include<fstream>
 #include<bitset>
+#include<string>
 #include<vector>
 
 using namespace std;
